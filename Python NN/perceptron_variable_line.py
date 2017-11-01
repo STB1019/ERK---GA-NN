@@ -1,4 +1,4 @@
-'''Coding Train perceptron example in Python'''
+'''Coding Train NN-10.3 perceptron using variable classification line'''
 __author__ = 'Nicola Onofri'
 __version__ = '1.0'
 
@@ -12,7 +12,7 @@ class Perceptron(object):
 
     def __init__(self):
         '''Class constructor'''
-        self.weights = [np.random.randint(-1, 2)] * 2  # 2 dimensions
+        self.weights = [np.random.randint(-1, 2)] * 2  # 2 random integers -1:1
 
     def guess(self, pts):
         '''Perceptron guessing test'''
@@ -40,12 +40,14 @@ def plot_dataset(pts, current_session, perceptron):
         if perceptron.guess((x, y)) != pts.get((x, y)):
             guessing_errors += 1
             ax.scatter(x, y, s=np.pi * (4**2),
-                       color='red', edgecolors='black')
+                       color='yellow', edgecolors='black')
         else:
             ax.scatter(x, y, s=np.pi * (4**2),
                        color='blue', edgecolors='black')
-    ax.plot([0, 2], [0, 2], 'k-', linewidth=1.3)
+    ax.plot([-1, 1], [classification_line(-1),
+                      classification_line(1)], 'k-', linewidth=1.3)
     ax.set_title('Training session #' + str(current_session))
+    ax.axis([-1.2, 1.2, -1.2, 1.2])  # recentering on dataset
     ax.grid()
     plt.show()  # a bit verbose, to be fixed
     # a plotting function shouldn't test and return values but who cares...
@@ -64,15 +66,20 @@ def plot_guessing_errors(errors, generations):
     plt.show()
 
 
+def classification_line(x):
+    '''Formula of the classification line '''
+    return 3 * x + 2  # y = mx + q
+
+
 def main():
     '''Create and train a perceptron, then plot its results'''
     # Creating training dataset
     dataset_dim = 100
-    generations = 5
+    generations = 5  # keep this number small otherwise prepare yourself to a long series of plots
     pts = {}  # {(x,y):val}
     for _ in range(0, dataset_dim):
-        x = float(np.random.random(1) * 2)
-        y = float(np.random.random(1) * 2)
+        x = float(np.random.random(1) * 2 - 1)  # rnd -1:1
+        y = float(np.random.random(1) * 2 - 1)  # rnd -1:1
         val = 1 if x > y else -1  # supervised learning strategy
         pts[(x, y)] = val
 
