@@ -14,45 +14,48 @@ class Perceptron(object):
         '''Class constructor'''
         self.weights = [np.random.randint(-1, 2)] * 2  # 2 dimensions
 
-    def guess(self, input):
+    def guess(self, pts):
         '''Perceptron guessing test'''
-        weighted_sum = np.sum([input[i] * self.weights[i]
-                               for i in range(0, len(input))])  # weighted sum
+        weighted_sum = np.sum([pts[i] * self.weights[i]
+                               for i in range(0, len(pts))])  # weighted sum
         # sign function -> activator
         return np.sign(weighted_sum) if weighted_sum != 0 else 1
 
-    def train(self, input, target):
-        '''Train the perceptron with inputs for which there's a known answer'''
-        guess = self.guess(input)  # ask perceptron to guess
+    def train(self, pts, target):
+        '''Train the perceptron with pts for which there's a known answer'''
+        guess = self.guess(pts)  # ask perceptron to guess
         error = target - guess  # compute error
-        self.weights = [self.weights[i] + error * input[i] * self.learning_rate
-                        for i in range(0, len(input))]  # tune weights according to error
+        self.weights = [self.weights[i] + error * pts[i] * self.learning_rate
+                        for i in range(0, len(pts))]  # tune weights according to error
 
 
-def plot_dataset(pts, override=True, show=False):
-    '''Plot results of a single training session '''
-    if not override:  # expecting result
-        for x, y in pts:
-            if pts.get((x, y)) == 1:
-                plt.scatter(x, y, s=np.pi * (3**2),
-                            color='black', edgecolors='black')
-            else:
-                plt.scatter(x, y, s=np.pi * (3**2),
-                            color='white', edgecolors='black')
-        plt.plot([0, 2], [0, 2], 'k-', linewidth=1.3)
+def plot_dataset(pts, current_session, perceptron):
+    '''Plot results of a perceptron training session'''
+    #fig, ax = plt.subplots(2, sessions / 2, sharex=True, sharey=True)
+    guessing_errors = 0
 
-    else:  # training session
-        pass
-    if show:
-        plt.grid()
-        plt.show()
+    fig = plt.figure('Training session results')
+    ax = fig.add_subplot(1, 1, 1)
+    for x, y in pts:
+        if perceptron.guess((x, y)) != pts.get((x, y)):
+            guessing_errors += 1
+            ax.scatter(x, y, s=np.pi * (4**2),
+                       color='red', edgecolors='black')
+        else:
+            ax.scatter(x, y, s=np.pi * (4**2),
+                       color='blue', edgecolors='black')
+    ax.plot([0, 2], [0, 2], 'k-', linewidth=1.3)
+    ax.set_title('Training session #' + str(current_session))
+    ax.grid()
+    plt.show()  # a bit verbose, to be fixed
+    # a plotting function shouldn't test and return values but who cares...
+    return guessing_errors
 
 
 def plot_guessing_errors(errors, generations):
+    '''Plot guessing mistakes for each training session'''
     fig = plt.figure('Errors')
     ax = fig.add_subplot(1, 1, 1)
-    # ax.scatter(range(0, generations), errors, s=np.pi *
-    #            (3**2), color='white', edgecolors='black')
     ax.plot(range(0, generations), errors, 'k-', marker='o')
     ax.set_xlabel('$generation$')
     ax.set_ylabel('$errors$')
@@ -64,7 +67,8 @@ def plot_guessing_errors(errors, generations):
 def main():
     '''Create and train a perceptron, then plot its results'''
     # Creating training dataset
-    dataset_dim = 1000
+    dataset_dim = 100
+    generations = 5
     pts = {}  # {(x,y):val}
     for _ in range(0, dataset_dim):
         x = float(np.random.random(1) * 2)
@@ -76,16 +80,14 @@ def main():
     errors = []
 
     # training and error evaluation
-    for gen in range(0, 10):
+    for gen in range(0, generations):
         err = 0
         for x, y in pts:
-            p.train((x, y), pts.get((x, y)))
-            # evaluate improvements
-            if p.guess((x, y)) != pts.get((x, y)):
-                err += 1
+            p.train((x, y), pts.get((x, y)))  # training for each point
+        err = plot_dataset(pts, gen, p)
         print 'Errors @ generation ' + str(gen) + ': ' + str(err)
         errors.append(err)
-    plot_guessing_errors(errors, 10)
+    plot_guessing_errors(errors, generations)
 
 
 if __name__ == '__main__':
